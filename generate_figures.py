@@ -68,16 +68,22 @@ def draw_style_mixing_figure(png, Gs, w, h, src_seeds, dst_seeds, style_ranges):
     dst_images = Gs.components.synthesis.run(dst_dlatents, randomize_noise=False, **synthesis_kwargs)
 
     canvas = PIL.Image.new('RGB', (w * (len(src_seeds) + 1), h * (len(dst_seeds) + 1)), 'white')
-    for col, src_image in enumerate(list(src_images)):
-        canvas.paste(PIL.Image.fromarray(src_image, 'RGB'), ((col + 1) * w, 0))
+    #for col, src_image in enumerate(list(src_images)):
+        #canvas.paste(PIL.Image.fromarray(src_image, 'RGB'), ((col + 1) * w, 0))
     for row, dst_image in enumerate(list(dst_images)):
-        canvas.paste(PIL.Image.fromarray(dst_image, 'RGB'), (0, (row + 1) * h))
+        #canvas.paste(PIL.Image.fromarray(dst_image, 'RGB'), (0, (row + 1) * h))
         row_dlatents = np.stack([dst_dlatents[row]] * len(src_seeds))
         row_dlatents[:, style_ranges[row]] = src_dlatents[:, style_ranges[row]]
         row_images = Gs.components.synthesis.run(row_dlatents, randomize_noise=False, **synthesis_kwargs)
-        for col, image in enumerate(list(row_images)):
-            canvas.paste(PIL.Image.fromarray(image, 'RGB'), ((col + 1) * w, (row + 1) * h))
-    canvas.save(png)
+        #for col, image in enumerate(list(row_images)):
+        #    canvas.paste(PIL.Image.fromarray(image, 'RGB'), ((col + 1) * w, (row + 1) * h))
+        if row == len(dst_images)-1:
+            for col, image in enumerate(list(row_images)):
+                print("Processing image: " + str(col) + " out of " + str(len(dst_images)))
+                temp = PIL.Image.fromarray(image, 'RGB')
+                temp.save(os.path.join(config.result_dir,'dst'+str(dst_seeds[col])+"src"+str(src_seeds[col])+".png"))
+            
+    #canvas.save(png)
 
 #----------------------------------------------------------------------------
 # Figure 4: Noise detail.
@@ -142,6 +148,25 @@ def draw_truncation_trick_figure(png, Gs, w, h, seeds, psis):
 
 #----------------------------------------------------------------------------
 # Main program.
+def main():
+    tflib.init_tf()
+    os.makedirs(config.result_dir, exist_ok=True)
+#    draw_uncurated_result_figure(os.path.join(config.result_dir, 'figure02-uncurated-ffhq.png'), load_Gs(url_ffhq), cx=0, cy=0, cw=1024, ch=1024, rows=3, lods=[0,1,2,2,3,3], seed=5)
+#    draw_style_mixing_figure(os.path.join(config.result_dir, 'figure03-style-mixing.png'), load_Gs(url_ffhq), w=1024, h=1024, src_seeds=[639,701,687,615,2268], dst_seeds=[888,829,1898,1733,1614,845], style_ranges=[range(0,4)]*3+[range(4,8)]*2+[range(8,18)])
+    min_arr = [975]*500
+    rand_arr = np.random.randint(1,5000,500)
+    print(rand_arr)
+    # draw_uncurated_result_figure(os.path.join(config.result_dir, 'figure02-uncurated-ffhq.png'), load_Gs(url_ffhq), cx=0, cy=0, cw=1024, ch=1024, rows=3, lods=[0,1,2,2,3,3], seed=5)
+    # draw_style_mixing_figure(os.path.join(config.result_dir, 'figure03-style-mixing.png'), load_Gs(url_ffhq), w=1024, h=1024, src_seeds=[639,701,687,615,2268], dst_seeds=[888,829,1898,1733,1614,845], style_ranges=[range(0,4)]*3+[range(4,8)]*2+[range(8,18)])
+    # draw_noise_detail_figure(os.path.join(config.result_dir, 'figure04-noise-detail.png'), load_Gs(url_ffhq), w=1024, h=1024, num_samples=100, seeds=[1157,1012])
+    # draw_noise_components_figure(os.path.join(config.result_dir, 'figure05-noise-components.png'), load_Gs(url_ffhq), w=1024, h=1024, seeds=[1967,1555], noise_ranges=[range(0, 18), range(0, 0), range(8, 18), range(0, 8)], flips=[1])
+    # draw_truncation_trick_figure(os.path.join(config.result_dir, 'figure08-truncation-trick.png'), load_Gs(url_ffhq), w=1024, h=1024, seeds=[91,388], psis=[1, 0.7, 0.5, 0, -0.5, -1])
+    draw_style_mixing_figure(os.path.join(config.result_dir, 'figure03-style-mixing.png'), load_Gs(url_ffhq), 
+                             w=1024, h=1024, 
+                             #src_seeds=rand_arr, 
+                             src_seeds=rand_arr,
+                             dst_seeds=min_arr, 
+                             style_ranges=[range(0,4)]*3+[range(4,8)]*2+[range(8,18)])
 
 def main():
     tflib.init_tf()
